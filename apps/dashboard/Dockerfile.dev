@@ -1,0 +1,45 @@
+# syntax=docker/dockerfile:1
+
+# Base stage - Installation des dépendances
+FROM node:18-alpine AS base
+
+# Installer pnpm
+RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
+
+WORKDIR /app
+
+# Copier les fichiers de configuration du workspace
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+
+# Dependencies stage - Installation complète
+FROM base AS deps
+
+# Copier tous les package.json des workspaces
+COPY packages/shared-types/package.json ./packages/shared-types/
+COPY packages/ui/package.json ./packages/ui/
+COPY packages/eslint-config/package.json ./packages/eslint-config/
+COPY packages/typescript-config/package.json ./packages/typescript-config/
+COPY apps/dashboard/package.json ./apps/dashboard/
+
+# Installer toutes les dépendances
+RUN pnpm install --frozen-lockfile
+
+# Development stage
+FROM base AS dev
+
+# Copier node_modules depuis deps
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/packages ./packages
+COPY --from=deps /app/apps/dashboard/node_modules ./apps/dashboard/node_modules
+
+# Copier le code source (sera overridé par les volumes en dev)
+COPY packages ./packages
+COPY apps/dashboard ./apps/dashboard
+
+WORKDIR /app/apps/dashboard
+
+# Exposer le port Next.js
+EXPOSE 3000
+
+# Démarrer le serveur de développement Next.js
+CMD ["pnpm", "dev"]

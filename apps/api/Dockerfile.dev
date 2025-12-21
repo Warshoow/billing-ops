@@ -1,0 +1,42 @@
+# syntax=docker/dockerfile:1
+
+# Base stage - Installation des dépendances
+FROM node:18-alpine AS base
+
+# Installer pnpm
+RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
+
+WORKDIR /app
+
+# Copier les fichiers de configuration du workspace
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+
+# Dependencies stage - Installation complète
+FROM base AS deps
+
+# Copier tous les package.json des workspaces
+COPY packages/shared-types/package.json ./packages/shared-types/
+COPY apps/api/package.json ./apps/api/
+
+# Installer toutes les dépendances
+RUN pnpm install --frozen-lockfile
+
+# Development stage
+FROM base AS dev
+
+# Copier node_modules depuis deps
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/packages ./packages
+COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
+
+# Copier le code source (sera overridé par les volumes en dev)
+COPY packages ./packages
+COPY apps/api ./apps/api
+
+WORKDIR /app/apps/api
+
+# Exposer le port de l'API
+EXPOSE 3333
+
+# Démarrer en mode développement avec HMR
+CMD ["pnpm", "dev"]

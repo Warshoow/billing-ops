@@ -1,3 +1,74 @@
+# BillingOps
+
+Module plug & play de gestion de facturation pour SaaS utilisant Stripe.
+
+## Architecture
+
+- **API** (`apps/api`) : Backend AdonisJS v6
+- **Dashboard** (`apps/dashboard`) : Frontend Next.js 16
+- **Shared Types** (`packages/shared-types`) : Types TypeScript partagés
+
+## Quick Start
+
+### Prérequis
+
+- Node.js >= 22
+- pnpm >= 9
+- Docker & Docker Compose
+
+### Installation
+```bash
+# Cloner le repo
+git clone https://github.com/vous/billingops
+cd billingops
+
+# Installer les dépendances
+pnpm install
+
+# Configurer les variables d'environnement
+cp apps/api/.env.example apps/api/.env
+cp apps/dashboard/.env.local.example apps/dashboard/.env.local
+
+# Démarrer les services (Postgres + Redis)
+docker-compose up -d
+
+# Attendre que Postgres soit prêt (5-10 secondes)
+
+# Lancer les migrations
+cd apps/api
+node ace migration:run
+cd ../..
+
+# Lancer le projet
+pnpm dev
+```
+
+Accédez au dashboard : http://localhost:3000  
+API endpoint : http://localhost:3333
+
+## Scripts disponibles
+```bash
+pnpm dev          # Lance tous les services en mode dev
+pnpm build        # Build tous les services
+pnpm lint         # Lint tous les services
+pnpm test         # Lance tous les tests
+pnpm clean        # Nettoie node_modules et caches
+```
+
+## Structure
+```
+billingops/
+├── apps/
+│   ├── api/          # AdonisJS API
+│   └── dashboard/    # Next.js Dashboard
+├── packages/
+│   ├── shared-types/ # Types partagés
+│   ├── eslint-config/
+│   └── typescript-config/
+└── docker-compose.yml
+```
+
+
 # Turborepo starter
 
 This Turborepo starter is maintained by the Turborepo core team.
