@@ -1,0 +1,13 @@
+{
+  "extends": ["//"],
+  "tasks": {
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "build": {
+      "outputs": ["build/**"],
+      "env": ["NODE_ENV"]
+    }
+  }
+}
