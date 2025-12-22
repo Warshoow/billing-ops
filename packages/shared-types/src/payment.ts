@@ -3,7 +3,7 @@ export interface Payment {
   amount: number
   currency: string
   status: 'succeeded' | 'failed' | 'pending'
-  customerId: string
+  customerId: number
   stripePaymentId: string
   createdAt: string
   updatedAt: string
