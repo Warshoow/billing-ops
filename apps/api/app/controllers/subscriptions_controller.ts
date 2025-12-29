@@ -1,27 +1,67 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Subscription from '#models/subscription'
-import type { Subscription as SubscriptionType } from '@repo/shared-types'
+import type { Subscription as SubscriptionResponse } from '@repo/shared-types'
 
 export default class SubscriptionsController {
-  async index({}: HttpContext) {
+  async index({}: HttpContext): Promise<SubscriptionResponse[]> {
     const subscriptions = await Subscription.query().preload('customer')
     
-    // Transformation en type partagé
-    const response: SubscriptionType[] = subscriptions.map(subscription => ({
-      id: subscription.id,
-      customerId: subscription.customerId,
-      status: subscription.status,
-      currentPeriodStart: subscription.currentPeriodStart.toISO()!, // DateTime → string ISO
-      currentPeriodEnd: subscription.currentPeriodEnd.toISO()!,
-      cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
-      stripeSubscriptionId: subscription.stripeSubscriptionId,
-      planAmount: subscription.planAmount,
-      currency: subscription.currency,
-      createdAt: subscription.createdAt.toISO()!,
-      updatedAt: subscription.updatedAt.toISO()!,
-      customer: subscription.customer
-    }))
+    const response: SubscriptionResponse[] = subscriptions.map(
+      (subscription) => subscription.serialize() as SubscriptionResponse
+    )
 
     return response
+  }
+
+  async show({ params }: HttpContext): Promise<SubscriptionResponse> {
+    const subscription = await Subscription.findOrFail(params.id)
+
+    const response: SubscriptionResponse = subscription.serialize() as SubscriptionResponse
+
+    return response
+  }
+
+  async store({ request }: HttpContext): Promise<SubscriptionResponse> {
+    const subscription = await Subscription.create({
+      customerId: request.input('customerId'),
+      status: request.input('status'),
+      currentPeriodStart: request.input('currentPeriodStart'),
+      currentPeriodEnd: request.input('currentPeriodEnd'),
+      cancelAtPeriodEnd: request.input('cancelAtPeriodEnd'),
+      stripeSubscriptionId: request.input('stripeSubscriptionId'),
+      planAmount: request.input('planAmount'),
+      currency: request.input('currency'),
+    })
+
+    const response: SubscriptionResponse = subscription.serialize() as SubscriptionResponse
+
+    return response
+  }
+
+  async update({ params, request }: HttpContext): Promise<SubscriptionResponse> {
+    const subscription = await Subscription.findOrFail(params.id)
+
+    subscription.merge({
+      customerId: request.input('customerId'),
+      status: request.input('status'),
+      currentPeriodStart: request.input('currentPeriodStart'),
+      currentPeriodEnd: request.input('currentPeriodEnd'),
+      cancelAtPeriodEnd: request.input('cancelAtPeriodEnd'),
+      stripeSubscriptionId: request.input('stripeSubscriptionId'),
+      planAmount: request.input('planAmount'),
+      currency: request.input('currency'),
+    })
+
+    await subscription.save()
+
+    const response: SubscriptionResponse = subscription.serialize() as SubscriptionResponse
+
+    return response
+  }
+
+  async destroy({ params }: HttpContext): Promise<void> {
+    const subscription = await Subscription.findOrFail(params.id)
+
+    await subscription.delete()
   }
 }

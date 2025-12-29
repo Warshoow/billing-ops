@@ -1,24 +1,65 @@
 import type { HttpContext } from '@adonisjs/core/http'
-import type { Payment as PaymentType } from '@repo/shared-types'
+import type { Payment as PaymentResponse } from '@repo/shared-types'
 import Payment from '#models/payment'
 
 export default class PaymentsController {
-  async index({}: HttpContext) {
-    const payments = await Payment.query().preload('customer')
+  async index({request}: HttpContext): Promise<PaymentResponse[]> {
+
+    const payments = await Payment
+    .query()
+    .preload('customer')
+    .if(request.input('status'), (query) => query.where('status', request.input('status')))
     
-    // Transformation en type partagé
-    const response: PaymentType[] = payments.map(payment => ({
-      id: payment.id,
-      amount: payment.amount,
-      currency: payment.currency,
-      status: payment.status,
-      customerId: payment.customerId,
-      stripePaymentId: payment.stripePaymentId,
-      createdAt: payment.createdAt.toISO()!, // DateTime → string ISO
-      updatedAt: payment.updatedAt.toISO()!,
-      customer: payment.customer
-    }))
+    const response: PaymentResponse[] = payments.map(
+      (payment) => payment.serialize() as PaymentResponse
+    )
 
     return response
+  }
+
+  async show({ params }: HttpContext): Promise<PaymentResponse> {
+    const payment = await Payment.findOrFail(params.id)
+
+    const response: PaymentResponse = payment.serialize() as PaymentResponse
+
+    return response
+  }
+
+  async store({ request }: HttpContext): Promise<PaymentResponse> {
+    const payment = await Payment.create({
+      customerId: request.input('customerId'),
+      amount: request.input('amount'),
+      currency: request.input('currency'),
+      status: request.input('status'),
+      stripePaymentId: request.input('stripePaymentId'),
+    })
+
+    const response: PaymentResponse = payment.serialize() as PaymentResponse
+
+    return response
+  }
+
+  async update({ params, request }: HttpContext): Promise<PaymentResponse> {
+    const payment = await Payment.findOrFail(params.id)
+
+    payment.merge({
+      customerId: request.input('customerId'),
+      amount: request.input('amount'),
+      currency: request.input('currency'),
+      status: request.input('status'),
+      stripePaymentId: request.input('stripePaymentId'),
+    })
+
+    await payment.save()
+
+    const response: PaymentResponse = payment.serialize() as PaymentResponse
+
+    return response
+  }
+
+  async destroy({ params }: HttpContext): Promise<void> {
+    const payment = await Payment.findOrFail(params.id)
+
+    await payment.delete()
   }
 }
