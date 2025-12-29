@@ -51,15 +51,16 @@
     "typescript": "5.9.2"
   },
   "dependencies": {
-    "@repo/shared-types": "workspace:*",
     "@adonisjs/auth": "^9.4.0",
     "@adonisjs/core": "^6.18.0",
     "@adonisjs/cors": "^2.2.1",
     "@adonisjs/lucid": "^21.6.1",
+    "@repo/shared-types": "workspace:*",
     "@vinejs/vine": "^3.0.1",
     "luxon": "^3.7.2",
     "pg": "^8.16.3",
-    "reflect-metadata": "^0.2.2"
+    "reflect-metadata": "^0.2.2",
+    "stripe": "^20.1.0"
   },
   "hotHook": {
     "boundaries": [
