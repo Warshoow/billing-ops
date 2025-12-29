@@ -1,3 +1,5 @@
+import { Customer } from "./customer"
+
 export interface Payment {
   id: string
   amount: number
@@ -6,7 +8,8 @@ export interface Payment {
   customerId: number
   stripePaymentId: string
   createdAt: string
-  updatedAt: string
+  updatedAt: string,
+  customer: Customer
 }
 
 export type PaymentStatus = Payment['status']
