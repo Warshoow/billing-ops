@@ -71,7 +71,8 @@ export const columns: ColumnDef<Payment>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "email",
+    accessorFn: (row) => row.customer.email,
+    id: "email",
     header: ({ column }) => {
       return (
         <Button
@@ -84,7 +85,7 @@ export const columns: ColumnDef<Payment>[] = [
       )
     },
     cell: ({ row }) => {
-      return <div className="lowercase">{row.original.customer.email}</div>;
+      return <div className="lowercase">{row.getValue("email")}</div>
     },
   },
   {
@@ -130,25 +131,35 @@ export const columns: ColumnDef<Payment>[] = [
       const payment = row.original
 
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal />
+        <div className="flex gap-2 justify-end">
+          <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <Button variant="outline" size="sm">
+              Retry payment
             </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(payment.id)}
-            >
-              Copy payment ID
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>View customer</DropdownMenuItem>
-            <DropdownMenuItem>View payment details</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            <Button variant="outline" size="sm">
+              View Customer
+            </Button>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={() => navigator.clipboard.writeText(payment.id)}
+              >
+                Copy payment ID
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>View in Stripe</DropdownMenuItem>
+              <DropdownMenuItem>View payment details</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       )
     },
   },
@@ -246,6 +257,7 @@ export function DataTableDemo({ data }: { data: Payment[] }) {
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  className="group"
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
