@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
+import { ModeToggle } from "@/components/mode-toggle";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -23,8 +25,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} flex flex-col gap-2 p-6`} suppressHydrationWarning>
-        {children}
+      <body className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
+        <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <div className="flex flex-col gap-4 p-6 min-h-screen font-sans">
+              <div className="flex justify-end w-full mb-4">
+                <ModeToggle />
+              </div>
+              {children}
+            </div>
+          </ThemeProvider>
       </body>
     </html>
   );

@@ -3,7 +3,7 @@ import { Badge } from "./ui/badge";
 import { Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card";
 import { IconTrendingDown, IconTrendingUp } from "@tabler/icons-react"
 
-export default function StatsCard({metric}: {metric: {key: string, value: number, info: {icon: JSX.Element, label: string}}}) {
+export default function StatsCard({metric}: {metric: {key: string, value: string | number, info: {icon: JSX.Element, label: string}}}) {
   
 
     return (
