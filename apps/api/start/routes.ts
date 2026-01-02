@@ -52,3 +52,13 @@ router.delete('/subscriptions/:id', [SubscriptionsController, 'destroy'])
 // Ingestion
 router.post('/events', [EventsController, 'store']) // SaaS Events
 router.post('/webhooks/stripe', [WebhooksController, 'handle']) // Stripe Webhooks
+
+// Simulation (Demo only)
+const SimulationController = () => import('#controllers/simulation_controller')
+router
+  .group(() => {
+    router.post('/payment_failed', [SimulationController, 'paymentFailed'])
+    router.post('/churn', [SimulationController, 'churn'])
+    router.post('/onboarding', [SimulationController, 'onboarding'])
+  })
+  .prefix('/simulation')
