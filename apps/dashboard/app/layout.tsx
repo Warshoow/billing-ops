@@ -33,7 +33,12 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <div className="flex flex-col gap-4 p-6 min-h-screen font-sans">
-              <div className="flex justify-end w-full mb-4">
+              <div className="flex justify-between w-full mb-4 items-center">
+                <nav className="flex gap-4">
+                  <a href="/" className="text-sm font-medium hover:underline">Dashboard</a>
+                  <a href="/subscriptions" className="text-sm font-medium hover:underline">Subscriptions</a>
+                  <a href="/customers" className="text-sm font-medium hover:underline">Customers</a>
+                </nav>
                 <ModeToggle />
               </div>
               {children}
