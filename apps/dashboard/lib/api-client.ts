@@ -70,6 +70,10 @@ class ApiClient {
   async getAlerts(): Promise<any> {
     return this.get("/alerts");
   }
+
+  async fetchCustomers(): Promise<any> {
+    return this.get("/customers");
+  }
 }
 
 export const apiClient = new ApiClient();
