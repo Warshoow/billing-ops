@@ -13,17 +13,17 @@ export default class Subscription extends BaseModel {
   @column()
   declare status: 'active' | 'canceled' | 'past_due' | 'trialing'
 
-  @column.dateTime({ 
-    serialize: (value: DateTime|null) => {
+  @column.dateTime({
+    serialize: (value: DateTime | null) => {
       return value?.toISO() ?? value
-    }
+    },
   })
   declare currentPeriodStart: DateTime
 
-  @column.dateTime({ 
-    serialize: (value: DateTime|null) => {
+  @column.dateTime({
+    serialize: (value: DateTime | null) => {
       return value?.toISO() ?? value
-    }
+    },
   })
   declare currentPeriodEnd: DateTime
 
@@ -39,21 +39,13 @@ export default class Subscription extends BaseModel {
   @column()
   declare currency: string
 
-  @column.dateTime({ 
-    autoCreate: true,
-    serialize: (value: DateTime|null) => {
-      return value?.toISO() ?? value
-    }
-  })
+  @column()
+  declare planInterval: string
+
+  @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 
-  @column.dateTime({ 
-    autoCreate: true,
-    autoUpdate: true,
-    serialize: (value: DateTime|null) => {
-      return value?.toISO() ?? value
-    }
-  })
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime
 
   // Relations
