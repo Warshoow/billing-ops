@@ -10,23 +10,17 @@ import { apiClient } from "@/lib/api-client";
 import { Card } from "@/components/ui/card";
 
 export default function Home() {
-    const [metrics, setMetrics] = useState<Omit<DashboardMetrics, 'mrrGrowth'> | null>(null);
-    const [payments, setPayments] = useState<Payment[]>([]);
-
-    useEffect(() => {
-        setMetrics({
-            mrr: Math.random() * 1000,
-            activeSubscriptions: Math.random() * 100,
-            failedPaymentsCount: Math.random() * 10,
-            churnRate: Math.random() * 10
-        });
-    }, []);
+    const { data: metrics, loading: metricsLoading } = useFetch<DashboardMetrics>(
+        async () => await apiClient.getMetrics(),
+        []
+    );
 
     const { data: paymentsData, loading: paymentsLoading, error: paymentsError } = useFetch<Payment[]>(async (): Promise<Payment[]> => {
         const response = await apiClient.get('/payments?status=failed') as any;
-        console.log(response)
         return response;
-    });
+    }, []);
+
+    const [payments, setPayments] = useState<Payment[]>([]);
 
     useEffect(() => {
         if (paymentsData) {
@@ -34,7 +28,7 @@ export default function Home() {
         }
     }, [paymentsData]);
 
-    if (!metrics) return null;
+    if (metricsLoading || !metrics) return <div>Loading metrics...</div>;
 
     const other = {
         mrr: {
@@ -88,16 +82,19 @@ export default function Home() {
 
     
 
-     return (
+    return (
         <>
             <div className="flex md:flex-row flex-col gap-4 w-full">
-                {Object.entries(metrics).map(([key, value]) => (
-                    <StatsCard key={key} metric={{key: key, value: value.toFixed(2), info: other[key]}} />
-                ))}
+                {(Object.keys(other) as Array<keyof typeof other>).map((key) => {
+                     // Check if metric value exists, default to 0. 
+                     // We use the key to access both the value from API and the metadata from 'other'.
+                     const value = metrics[key as keyof DashboardMetrics] || 0;
+                     return <StatsCard key={key} metric={{key: key, value: String(Number(value).toFixed(2)), info: other[key]}} />
+                })}
             </div>
             <ChartAreaInteractive data={revenueData}/>
             <Card className="p-6">
-                <DataTableDemo data={payments}/>
+                <DataTableDemo data={payments} onUpdate={() => window.location.reload()}/>
             </Card>
         </>
     )

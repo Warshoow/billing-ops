@@ -13,7 +13,8 @@ import {
   type SortingState,
   type VisibilityState,
 } from "@tanstack/react-table"
-import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react"
+import { ArrowUpDown, ChevronDown, MoreHorizontal, RotateCw, Loader2 } from "lucide-react"
+import { apiClient } from "@/lib/api-client"
 
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -47,7 +48,10 @@ const statusMap: Record<string, "default" | "secondary" | "destructive" | "outli
 }
 
 
-export const columns: ColumnDef<Payment>[] = [
+const createColumns = (
+  handleRetry: (payment: Payment) => Promise<void>,
+  loadingId: string | null
+): ColumnDef<Payment>[] => [
   {
     id: "select",
     header: ({ table }) => (
@@ -132,13 +136,24 @@ export const columns: ColumnDef<Payment>[] = [
 
       return (
         <div className="flex gap-2 justify-end">
-          <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            <Button variant="outline" size="sm">
-              Retry payment
-            </Button>
-            <Button variant="outline" size="sm">
-              View Customer
-            </Button>
+          <div className="flex gap-2">
+            {payment.status === 'failed' && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => handleRetry(payment)}
+                disabled={loadingId === payment.id}
+              >
+                {loadingId === payment.id ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    <RotateCw className="h-4 w-4 mr-1" />
+                    Retry
+                  </>
+                )}
+              </Button>
+            )}
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -165,7 +180,7 @@ export const columns: ColumnDef<Payment>[] = [
   },
 ]
 
-export function DataTableDemo({ data }: { data: Payment[] }) {
+export function DataTableDemo({ data, onUpdate }: { data: Payment[], onUpdate?: () => void }) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -173,6 +188,22 @@ export function DataTableDemo({ data }: { data: Payment[] }) {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
+  const [loadingId, setLoadingId] = React.useState<string | null>(null)
+
+  const handleRetry = async (payment: Payment) => {
+    try {
+      setLoadingId(payment.id)
+      await apiClient.retryPayment(payment.id)
+      alert('Payment retry initiated successfully!')
+      onUpdate?.()
+    } catch (error: any) {
+      alert(`Error: ${error.message}`)
+    } finally {
+      setLoadingId(null)
+    }
+  }
+
+  const columns = createColumns(handleRetry, loadingId)
 
   const table = useReactTable({
     data,
