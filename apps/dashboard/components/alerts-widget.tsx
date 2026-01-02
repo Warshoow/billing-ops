@@ -1,11 +1,20 @@
-'use client'
-
+import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { AlertCircle, AlertTriangle, Info, CheckCircle } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { AlertCircle, AlertTriangle, Info, CheckCircle, Filter } from "lucide-react"
 import { useFetch } from "@/hooks/useFetch"
 import { apiClient } from "@/lib/api-client"
 import { Alert as AlertType } from "@repo/shared-types"
 import { Badge } from "@/components/ui/badge"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+    DropdownMenuCheckboxItem,
+} from "@/components/ui/dropdown-menu"
 
 const severityMap = {
   critical: { icon: AlertCircle, color: "bg-red-500", label: "Critical" },
@@ -15,43 +24,70 @@ const severityMap = {
 }
 
 export function AlertsWidget() {
-  const { data: alerts, loading, error } = useFetch<AlertType[]>(
+  const [filterSeverity, setFilterSeverity] = useState<string | null>(null)
+  
+  const { data: alerts, loading, error, refetch } = useFetch<AlertType[]>(
     async () => await apiClient.getAlerts(),
     []
   )
 
-  if (loading) return <div>Loading alerts...</div>
-  if (!alerts?.length) return null
-
-  // Filter only unresolved alerts and sort by severity (critical first)
-  const activeAlerts = alerts
+  const activeAlerts = (alerts || [])
     .filter(a => !a.resolved)
+    .filter(a => filterSeverity ? a.severity === filterSeverity : true)
     .sort((a, b) => {
       const severityOrder = { critical: 0, high: 1, medium: 2, low: 3 }
-      return severityOrder[a.severity] - severityOrder[b.severity]
+      const diff = severityOrder[a.severity] - severityOrder[b.severity]
+      if (diff !== 0) return diff
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     })
-    .slice(0, 5) // Top 5 critical alerts
+    .slice(0, 5)
 
-  if (activeAlerts.length === 0) return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">Critical Alerts</CardTitle>
-        <CheckCircle className="h-4 w-4 text-green-500" />
-      </CardHeader>
-      <CardContent>
-        <div className="text-sm text-muted-foreground mt-2">
-            No active critical alerts. System is healthy.
-        </div>
-      </CardContent>
-    </Card>
-  )
+  if (loading) return <div>Loading alerts...</div>
 
   return (
     <Card>
-      <CardHeader className="pb-2">
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm font-medium">Critical Actions Required</CardTitle>
+        <div className="flex gap-2">
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-4 p-0 px-2 text-xs">
+                        <Filter className="h-3 w-3 mr-1" />
+                        {filterSeverity ? filterSeverity : 'All'}
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Filter by Severity</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => setFilterSeverity(null)}>
+                        All
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setFilterSeverity('critical')}>
+                        Critical
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setFilterSeverity('high')}>
+                        High
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setFilterSeverity('medium')}>
+                        Medium
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setFilterSeverity('low')}>
+                        Low
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+            <Button variant="ghost" size="sm" onClick={refetch} className="h-4 p-0 px-2 text-xs">
+                Refresh
+            </Button>
+        </div>
       </CardHeader>
       <CardContent>
+        {activeAlerts.length === 0 ? (
+            <div className="flex flex-col items-center justify-center p-4 text-center text-muted-foreground">
+                <CheckCircle className="h-8 w-8 text-green-500 mb-2" />
+                <p>System is healthy.</p>
+            </div>
+        ) : (
         <div className="space-y-4">
           {activeAlerts.map((alert) => {
             const Config = severityMap[alert.severity] || severityMap.low
@@ -82,6 +118,7 @@ export function AlertsWidget() {
             )
           })}
         </div>
+        )}
       </CardContent>
     </Card>
   )
