@@ -8,6 +8,7 @@ import { DataTableDemo } from "@/components/data-table";
 import { useFetch } from "@/hooks/useFetch";
 import { apiClient } from "@/lib/api-client";
 import { Card } from "@/components/ui/card";
+import { AlertsWidget } from "@/components/alerts-widget";
 
 export default function Home() {
     const { data: metrics, loading: metricsLoading } = useFetch<DashboardMetrics>(
@@ -86,12 +87,13 @@ export default function Home() {
         <>
             <div className="flex md:flex-row flex-col gap-4 w-full">
                 {(Object.keys(other) as Array<keyof typeof other>).map((key) => {
-                     // Check if metric value exists, default to 0. 
-                     // We use the key to access both the value from API and the metadata from 'other'.
                      const value = metrics[key as keyof DashboardMetrics] || 0;
                      return <StatsCard key={key} metric={{key: key, value: String(Number(value).toFixed(2)), info: other[key]}} />
                 })}
             </div>
+            
+            <AlertsWidget />
+
             <ChartAreaInteractive data={revenueData}/>
             <Card className="p-6">
                 <DataTableDemo data={payments} onUpdate={() => window.location.reload()}/>

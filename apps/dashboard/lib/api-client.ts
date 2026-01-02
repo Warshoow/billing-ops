@@ -66,6 +66,10 @@ class ApiClient {
   async getMetrics(): Promise<any> {
     return this.get("/metrics");
   }
+
+  async getAlerts(): Promise<any> {
+    return this.get("/alerts");
+  }
 }
 
 export const apiClient = new ApiClient();
