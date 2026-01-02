@@ -94,7 +94,17 @@ const createColumns = (
   },
   {
     accessorKey: "amount",
-    header: () => <div className="text-right">Amount</div>,
+    header: ({ column }) => (
+      <div className="text-right">
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Amount
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      </div>
+    ),
     cell: ({ row }) => {
       const amount = parseFloat(row.getValue("amount"))
 
@@ -109,7 +119,15 @@ const createColumns = (
   },
   {
     accessorKey: "status",
-    header: "Status",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Status
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
     cell: ({ row }) => {
       const status = row.getValue("status") as keyof typeof statusMap
       return (
@@ -121,7 +139,15 @@ const createColumns = (
   },
   {
     accessorKey: "updatedAt",
-    header: "Date",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Date
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
     cell: ({ row }) => {
       const date = row.getValue("updatedAt") as string
       const formattedDate = new Date(date).toLocaleDateString()
