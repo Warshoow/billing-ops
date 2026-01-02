@@ -31,10 +31,10 @@ export default function Home() {
 
     if (metricsLoading || !metrics) return <div>Loading metrics...</div>;
 
-    const other = {
+    const stats = {
         mrr: {
             icon: <CircleDollarSign/>,
-            label: 'Monthly Recurring Revenue'
+            label: 'Monthly Recurring Revenue (Dollars $)'
         },
         activeSubscriptions: {
             icon: <Users/>,
@@ -46,55 +46,22 @@ export default function Home() {
         },
         churnRate: {
             icon: <UserRoundMinus/>,
-            label: 'Churn Rate'
+            label: 'Churn Rate (%)'
         },
-        mrrGrowth: {
-            icon: <ChartNoAxesCombined/>,
-            label: 'MRR Growth'
-        }
     }
-
-    function generateMockRevenueData(days: number = 180): {date: string, amount: number}[] {
-        const data: {date: string, amount: number}[] = [];
-        let baseAmount = 8000;
-
-        // Loop through the last n days
-        for (let i = days - 1; i >= 0; i--) {
-            const date = new Date();
-            date.setDate(date.getDate() - i);
-            
-            // Generate a random daily fluctuation
-            const volatility = 0.8 + Math.random() * 0.4; // 0.8 to 1.2
-            const growth = 1.002; // Small daily growth trend
-            
-            baseAmount = (baseAmount * growth);
-            const dailyAmount = baseAmount * volatility;
-            
-            data.push({
-                date: date.toISOString().split('T')[0] as string, // Format YYYY-MM-DD
-                amount: Math.round(dailyAmount * 100) / 100,
-            });
-        }
-
-        return data;
-    }
-
-    const revenueData = generateMockRevenueData(180);
-
-    
 
     return (
         <>
             <div className="flex md:flex-row flex-col gap-4 w-full">
-                {(Object.keys(other) as Array<keyof typeof other>).map((key) => {
+                {(Object.keys(stats) as Array<keyof typeof stats>).map((key) => {
                      const value = metrics[key as keyof DashboardMetrics] || 0;
-                     return <StatsCard key={key} metric={{key: key, value: String(Number(value).toFixed(2)), info: other[key]}} />
+                     return <StatsCard key={key} metric={{key: key, value: String(Number(value).toFixed(2)), info: stats[key]}} />
                 })}
             </div>
             
             <AlertsWidget />
 
-            <ChartAreaInteractive data={revenueData}/>
+            <ChartAreaInteractive data={metrics.revenueHistory || []}/>
             <Card className="p-6">
                 <DataTableDemo data={payments} onUpdate={() => window.location.reload()}/>
             </Card>
