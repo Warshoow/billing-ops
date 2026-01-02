@@ -4,6 +4,7 @@ import { useFetch } from "@/hooks/useFetch"
 import { apiClient } from "@/lib/api-client"
 import { Customer } from "@repo/shared-types"
 import { CustomersTable } from "@/components/customers-table"
+import { Card } from "@/components/ui/card"
 
 export default function CustomersPage() {
   const { data: customers, loading, error } = useFetch<Customer[]>(
@@ -22,8 +23,9 @@ export default function CustomersPage() {
           View customer status and lifetime value.
         </p>
       </div>
-
-      <CustomersTable data={customers || []} />
+      <Card className="p-6">
+        <CustomersTable data={customers || []} />
+      </Card>
     </div>
   )
 }

@@ -9,7 +9,6 @@ body {
   /* overflow-x: hidden; - Removed to fix Radix UI scrollbar shift */
 }
 
-
 a {
   color: inherit;
   text-decoration: none;
@@ -153,11 +152,6 @@ a {
     @apply bg-background text-foreground;
   }
 }
-
-
-
-
-
 
 @layer base {
   :root {

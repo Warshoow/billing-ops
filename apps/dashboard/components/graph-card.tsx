@@ -66,10 +66,6 @@ export function ChartAreaInteractive({data}: {data: {date: string, amount: numbe
         <div className="grid flex-1 gap-1">
           <CardTitle className="flex items-center gap-2">
             MRR Growth
-            <Badge variant="outline">
-              <IconTrendingUp />
-              {growth.toFixed(2)}%
-            </Badge>
           </CardTitle>
           <CardDescription>
             {description}
