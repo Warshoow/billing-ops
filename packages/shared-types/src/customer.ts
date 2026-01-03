@@ -1,5 +1,5 @@
 export interface Customer {
-  id: number;
+  id: string;
   externalUserId: string;
   email: string;
   stripeCustomerId: string;

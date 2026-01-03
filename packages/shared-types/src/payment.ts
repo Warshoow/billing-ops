@@ -5,7 +5,7 @@ export interface Payment {
   amount: number
   currency: string
   status: 'succeeded' | 'failed' | 'pending'
-  customerId: number
+  customerId: string
   stripePaymentId: string
   createdAt: string
   updatedAt: string,

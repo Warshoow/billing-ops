@@ -1,6 +1,6 @@
 export interface Subscription {
   id: string
-  customerId: number
+  customerId: string
   status: 'active' | 'canceled' | 'past_due' | 'trialing'
   currentPeriodStart: string
   currentPeriodEnd: string

@@ -16,7 +16,7 @@ export interface Alert {
   type: "payment_failed" | "subscription_at_risk" | "churn";
   severity: "low" | "medium" | "high" | "critical";
   message: string;
-  customerId: number;
+  customerId: string;
   createdAt: string;
   resolved: boolean;
 }
