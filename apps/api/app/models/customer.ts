@@ -7,7 +7,7 @@ import Alert from './alert.js'
 
 export default class Customer extends BaseModel {
   @column({ isPrimary: true })
-  declare id: number
+  declare id: string
 
   @column()
   declare externalUserId: string
