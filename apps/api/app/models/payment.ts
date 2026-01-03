@@ -8,7 +8,7 @@ export default class Payment extends BaseModel {
   declare id: string
 
   @column()
-  declare customerId: number
+  declare customerId: string
 
   @column()
   declare amount: number

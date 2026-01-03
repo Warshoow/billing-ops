@@ -8,7 +8,7 @@ export default class Alert extends BaseModel {
   declare id: string
 
   @column()
-  declare customerId: number
+  declare customerId: string
 
   @column()
   declare type: 'payment_failed' | 'subscription_at_risk' | 'churn'

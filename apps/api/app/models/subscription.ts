@@ -8,7 +8,7 @@ export default class Subscription extends BaseModel {
   declare id: string
 
   @column()
-  declare customerId: number
+  declare customerId: string
 
   @column()
   declare status: 'active' | 'canceled' | 'past_due' | 'trialing'
