@@ -8,7 +8,7 @@ import { DateTime } from 'luxon'
 export default class StripeEventHandler {
   async handlePaymentIntent(paymentIntent: Stripe.PaymentIntent) {
     // Find customer by Stripe ID to link
-    let customerId: number | undefined
+    let customerId: string | undefined
     let customer: Customer | null = null
 
     if (typeof paymentIntent.customer === 'string') {
@@ -55,7 +55,7 @@ export default class StripeEventHandler {
   }
 
   async handleSubscription(subscription: Stripe.Subscription) {
-    let customerId: number | undefined
+    let customerId: string | undefined
     if (typeof subscription.customer === 'string') {
       const customer = await Customer.findBy('stripeCustomerId', subscription.customer)
       if (customer) customerId = customer.id
@@ -65,7 +65,8 @@ export default class StripeEventHandler {
       stripeSubscriptionId: subscription.id,
       customerId: customerId,
       status: subscription.status as any,
-      currentPeriodEnd: DateTime.fromSeconds(subscription.current_period_end),
+      currentPeriodStart: DateTime.fromSeconds(subscription.items.data[0]?.current_period_start),
+      currentPeriodEnd: DateTime.fromSeconds(subscription.items.data[0]?.current_period_end),
       cancelAtPeriodEnd: subscription.cancel_at_period_end,
       planInterval: subscription.items.data[0]?.price.recurring?.interval || 'month',
       planAmount: (subscription.items.data[0]?.price.unit_amount || 0) / 100,
