@@ -7,6 +7,7 @@ export interface Subscription {
   cancelAtPeriodEnd: boolean
   stripeSubscriptionId: string
   planAmount: number
+  planInterval: 'month' | 'year'
   currency: string
   createdAt: string
   updatedAt: string
