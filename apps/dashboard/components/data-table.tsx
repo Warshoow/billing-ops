@@ -196,7 +196,10 @@ const createColumns = (
                 Copy payment ID
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>View in Stripe</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => 
+                  window.open(`https://dashboard.stripe.com/payments/${payment.stripePaymentId}`, '_blank')
+                }>View in Stripe
+              </DropdownMenuItem>
               <DropdownMenuItem>View payment details</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
