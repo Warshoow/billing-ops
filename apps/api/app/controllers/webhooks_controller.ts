@@ -5,7 +5,6 @@ import Stripe from 'stripe'
 
 export default class WebhooksController {
   async handle({ request, response }: HttpContext) {
-    // const payload = request.body()
     const signature = request.header('stripe-signature')
 
     if (!signature) {
@@ -13,32 +12,31 @@ export default class WebhooksController {
     }
 
     let event: Stripe.Event
+    let rawBody: string | Buffer
 
     try {
-      // In a real AdonisJS app with raw body parsing disabled by default for JSON,
-      // we might need to ensure we get the raw buffer.
-      // For now, assuming standard middleware config or using a raw body parser if configured.
-      // If request.raw() or similar is needed, adjustment might be required based on bodyparser config.
-      // NOTE: stripe.webhooks.constructEvent expects raw string/buffer.
-      // If bodyparser parsed it to JSON, this will fail.
-      // We often need "request.raw()" or similar in Adonis.
-      // For this implementation, we assume we have access to raw body or the payload is correct.
-      // If request.body() is already JSON, we might need a different approach
-      // or ensure the route is excluded from bodyparser JSON parsing.
+      // Try to get raw body - AdonisJS 6 approach
+      // First attempt: use request.raw() if available
+      if (typeof (request as any).raw === 'function') {
+        rawBody = await (request as any).raw()
+      } else {
+        // Fallback: Read from Node.js request stream
+        const chunks: Buffer[] = []
+        const nodeRequest = request.request // Access underlying Node.js IncomingMessage
 
-      // Attempting to use request.raw() if available, or stringify body if it was parsed (risky for signature).
-      // Best practice in Adonis 6 is to disable bodyparser for this route or use `request.raw()` if available.
-      // Let's assume for this step we have access to raw body or the payload is correct.
-      // Ideally: event = stripeService.constructEvent(request.raw(), signature)
+        await new Promise<void>((resolve, reject) => {
+          nodeRequest.on('data', (chunk: Buffer) => {
+            chunks.push(chunk)
+          })
+          nodeRequest.on('end', () => resolve())
+          nodeRequest.on('error', (err: Error) => reject(err))
+        })
 
-      // Since we can't easily change bodyparser config in one go without verifying,
-      // we will assume `request.raw()` works or we pass the body as is if it's string.
+        rawBody = Buffer.concat(chunks)
+      }
 
-      // Workaround for this environment: We will try to rely on the service.
-      // But `request.raw()` usage depends on `config/bodyparser.ts`.
-
-      // Let's proceed with a standard try, knowing we might need to tweak bodyparser later.
-      event = stripeService.constructEvent(request.raw() as unknown as string | Buffer, signature)
+      // Verify webhook signature and construct event
+      event = stripeService.constructEvent(rawBody, signature)
     } catch (err: any) {
       console.error(`[Webhooks] Signature verification failed: ${err.message}`)
       return response.badRequest(`Webhook Error: ${err.message}`)

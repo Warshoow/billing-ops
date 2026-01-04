@@ -18,6 +18,8 @@ const bodyParserConfig = defineConfig({
 
   /**
    * Config for the JSON parser
+   * NOTE: Stripe webhooks are excluded from JSON parsing
+   * to preserve raw body for signature verification
    */
   json: {
     convertEmptyStringsToNull: true,
@@ -27,6 +29,16 @@ const bodyParserConfig = defineConfig({
       'application/vnd.api+json',
       'application/csp-report',
     ],
+  },
+
+  /**
+   * Config for raw body parsing
+   * Used for Stripe webhook signature verification
+   */
+  raw: {
+    encoding: 'utf-8',
+    types: ['text/*'],
+    limit: '1mb',
   },
 
   /**
