@@ -22,20 +22,20 @@ export default class Alert extends BaseModel {
   @column()
   declare resolved: boolean
 
-  @column.dateTime({ 
+  @column.dateTime({
     autoCreate: true,
-    serialize: (value: DateTime|null) => {
+    serialize: (value: DateTime | null) => {
       return value?.toISO() ?? value
-    }
+    },
   })
   declare createdAt: DateTime
 
-  @column.dateTime({ 
+  @column.dateTime({
     autoCreate: true,
     autoUpdate: true,
-    serialize: (value: DateTime|null) => {
+    serialize: (value: DateTime | null) => {
       return value?.toISO() ?? value
-    }
+    },
   })
   declare updatedAt: DateTime
 

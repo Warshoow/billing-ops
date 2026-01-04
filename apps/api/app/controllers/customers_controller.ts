@@ -3,7 +3,6 @@ import type { HttpContext } from '@adonisjs/core/http'
 import type { Customer as CustomerResponse } from '@repo/shared-types'
 
 export default class CustomersController {
-  
   async index({}: HttpContext): Promise<CustomerResponse[]> {
     const customers = await Customer.all()
 

@@ -5,10 +5,8 @@ import type { Alert as AlertResponse } from '@repo/shared-types'
 export default class AlertsController {
   async index({}: HttpContext): Promise<AlertResponse[]> {
     const alerts = await Alert.query().preload('customer')
-    
-    const response: AlertResponse[] = alerts.map(
-      (alert) => alert.serialize() as AlertResponse
-    )
+
+    const response: AlertResponse[] = alerts.map((alert) => alert.serialize() as AlertResponse)
 
     return response
   }

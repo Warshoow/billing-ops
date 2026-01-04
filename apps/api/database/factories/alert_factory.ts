@@ -4,7 +4,7 @@ import Alert from '#models/alert'
 export const AlertFactory = factory
   .define(Alert, async ({ faker }) => {
     const type = faker.helpers.arrayElement(['payment_failed', 'subscription_at_risk', 'churn'])
-    
+
     const messages = {
       payment_failed: 'Payment method declined',
       subscription_at_risk: 'Subscription renewal approaching with invalid payment method',
