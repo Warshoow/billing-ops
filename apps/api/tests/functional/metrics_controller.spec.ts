@@ -6,7 +6,6 @@ import { test } from '@japa/runner'
 import { DateTime } from 'luxon'
 
 test.group('MetricsController', (group) => {
-
   group.each.setup(() => testUtils.db().truncate())
 
   test('calcule correctement le MRR avec des subscriptions actives', async ({ client, assert }) => {
@@ -71,7 +70,7 @@ test.group('MetricsController', (group) => {
     response.assertStatus(200)
 
     const body = response.body()
-    
+
     // MRR = 29.99 + 49.99 = 79.98 (ne compte pas la canceled)
     assert.equal(body.mrr, 79.98)
     assert.equal(body.activeSubscriptions, 2)
@@ -209,5 +208,4 @@ test.group('MetricsController', (group) => {
     response.assertStatus(200)
     assert.equal(response.body().failedPaymentsCount, 3)
   })
-    
 })
