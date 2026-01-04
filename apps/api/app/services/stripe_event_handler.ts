@@ -13,19 +13,42 @@ export default class StripeEventHandler {
 
     if (typeof paymentIntent.customer === 'string') {
       customer = await Customer.findBy('stripeCustomerId', paymentIntent.customer)
-      if (customer) customerId = customer.id
+
+      // If customer doesn't exist locally, create it
+      if (!customer) {
+        customer = await Customer.create({
+          stripeCustomerId: paymentIntent.customer,
+          externalUserId: `stripe_${paymentIntent.customer}`,
+          email: `unknown_${paymentIntent.customer}@stripe.webhook`,
+          status: 'active',
+          lifetimeValue: 0,
+        })
+        console.log(
+          `[StripeEventHandler] Created new customer from Stripe ID: ${paymentIntent.customer}`
+        )
+      }
+
+      customerId = customer.id
     }
 
-    await Payment.updateOrCreate(
-      { stripePaymentId: paymentIntent.id },
-      {
-        stripePaymentId: paymentIntent.id,
-        amount: paymentIntent.amount / 100, // Convert cents to dollars/unit
-        currency: paymentIntent.currency,
-        status: this.mapPaymentStatus(paymentIntent.status),
-        customerId: customerId,
-      }
-    )
+    // Only create payment if we have a valid customer
+    if (customerId) {
+      await Payment.updateOrCreate(
+        { stripePaymentId: paymentIntent.id },
+        {
+          stripePaymentId: paymentIntent.id,
+          amount: paymentIntent.amount / 100, // Convert cents to dollars/unit
+          currency: paymentIntent.currency,
+          status: this.mapPaymentStatus(paymentIntent.status),
+          customerId: customerId,
+        }
+      )
+    } else {
+      console.warn(
+        `[StripeEventHandler] Skipping PaymentIntent ${paymentIntent.id} - no customer found`
+      )
+      return
+    }
 
     // [NEW] Generate Alert if payment failed
     if (
@@ -56,9 +79,34 @@ export default class StripeEventHandler {
 
   async handleSubscription(subscription: Stripe.Subscription) {
     let customerId: string | undefined
+    let customer: Customer | null = null
+
     if (typeof subscription.customer === 'string') {
-      const customer = await Customer.findBy('stripeCustomerId', subscription.customer)
-      if (customer) customerId = customer.id
+      customer = await Customer.findBy('stripeCustomerId', subscription.customer)
+
+      // If customer doesn't exist locally, create it
+      if (!customer) {
+        customer = await Customer.create({
+          stripeCustomerId: subscription.customer,
+          externalUserId: `stripe_${subscription.customer}`,
+          email: `unknown_${subscription.customer}@stripe.webhook`,
+          status: 'active',
+          lifetimeValue: 0,
+        })
+        console.log(
+          `[StripeEventHandler] Created new customer from Stripe ID: ${subscription.customer}`
+        )
+      }
+
+      customerId = customer.id
+    }
+
+    // Only create subscription if we have a valid customer
+    if (!customerId) {
+      console.warn(
+        `[StripeEventHandler] Skipping Subscription ${subscription.id} - no customer found`
+      )
+      return
     }
 
     await LocalSubscription.updateOrCreate({ stripeSubscriptionId: subscription.id }, {
@@ -75,10 +123,10 @@ export default class StripeEventHandler {
 
     // Handle Churn / Cancellation Alerts or Status Updates
     if (customerId && subscription.status === 'canceled') {
-      const customer = await Customer.find(customerId)
-      if (customer) {
-        customer.status = 'churned'
-        await customer.save()
+      const customerRecord = await Customer.find(customerId)
+      if (customerRecord) {
+        customerRecord.status = 'churned'
+        await customerRecord.save()
 
         await Alert.create({
           customerId,
