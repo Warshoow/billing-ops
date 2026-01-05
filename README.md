@@ -11,7 +11,7 @@ Projet test qui offre une vue claire des paiements et abonnements Stripe, sans l
 - **Monorepo** : Turborepo + pnpm
 - **Backend** : AdonisJS 6 + PostgreSQL + Stripe SDK
 - **Frontend** : Next.js 16 + React 19 + Tailwind CSS 4
-- **UI** : Radix UI
+- **UI** : Shadcn
 - **Language** : TypeScript
 
 ---
@@ -19,7 +19,7 @@ Projet test qui offre une vue claire des paiements et abonnements Stripe, sans l
 ## Installation Rapide
 
 ### Prérequis
-- Node.js 22.x (minimum 18.x)
+- Node.js 22.x (minimum 20.x)
 - pnpm 9.0.0+ : `corepack enable && corepack prepare pnpm@9.0.0 --activate`
 - Docker & Docker Compose
 
@@ -27,8 +27,8 @@ Projet test qui offre une vue claire des paiements et abonnements Stripe, sans l
 
 ```bash
 # 1. Cloner et installer
-git clone <repo-url>
-cd my-turborepo
+git clone https://github.com/Warshoow/billing-ops.git
+cd billing-ops
 pnpm install
 
 # 2. Configurer l'API
@@ -41,6 +41,9 @@ node ace generate:key  # Copier la clé générée
 # - DB_USER=postgres
 # - DB_PASSWORD=postgres
 # - DB_DATABASE=billingops
+
+#STRIPE_SECRET_KEY="sk_test_..."
+#STRIPE_WEBHOOK_SECRET="whsec_..."
 cd ../..
 
 # 3. Créer apps/dashboard/.env.local avec :
@@ -62,7 +65,6 @@ pnpm dev
 **Accès** :
 - Dashboard : http://localhost:3000
 - API : http://localhost:3333
-- Metrics : http://localhost:3333/metrics
 
 ---
 
@@ -96,7 +98,7 @@ my-turborepo/
 ```bash
 pnpm dev                    # Lancer API + Dashboard
 docker-compose up -d        # Démarrer PostgreSQL
-cd apps/api && pnpm test    # Lancer les tests
+cd apps/api && node ace test    # Lancer les tests
 ```
 
 ---
