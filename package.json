@@ -4,6 +4,9 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
+    "dev:safe": "scripts\\dev.cmd",
+    "dev:manual": "pnpm --filter @billingops/api dev & pnpm --filter @billingops/dashboard dev",
+    "cleanup": "powershell -ExecutionPolicy Bypass -File scripts/cleanup.ps1",
     "lint": "turbo run lint",
     "test": "turbo run test",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
