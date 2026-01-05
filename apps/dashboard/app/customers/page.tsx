@@ -16,7 +16,7 @@ export default function CustomersPage() {
   if (error) return <div className="p-10 text-red-500">Error: {error.message}</div>
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Customers</h1>
         <p className="text-muted-foreground">

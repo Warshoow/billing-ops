@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ModeToggle } from "@/components/mode-toggle";
+import Link from "next/link";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -35,7 +36,7 @@ export default function RootLayout({
             <div className="flex flex-col gap-4 p-6 min-h-screen font-sans">
               <div className="flex justify-between w-full mb-4 items-center">
                 <nav className="flex gap-4">
-                  <a href="/" className="text-sm font-medium hover:underline">Dashboard</a>
+                  <Link href="/" className="text-sm font-medium hover:underline">Dashboard</Link>
                   <a href="/subscriptions" className="text-sm font-medium hover:underline">Subscriptions</a>
                   <a href="/customers" className="text-sm font-medium hover:underline">Customers</a>
                 </nav>
