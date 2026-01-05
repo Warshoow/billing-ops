@@ -19,12 +19,19 @@ services:
     ports:
       - "3333:3333"
     volumes:
-      - ./apps/api:/app/apps/api
-      - ./packages:/app/packages
-      - /app/node_modules
+      - ./apps/api/app:/app/apps/api/app
+      - ./apps/api/config:/app/apps/api/config
+      - ./apps/api/database:/app/apps/api/database
+      - ./apps/api/start:/app/apps/api/start
+      - ./packages/shared-types/src:/app/packages/shared-types/src
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/billingops
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_DATABASE: billingops
       PORT: 3333
+      HOST: 0.0.0.0
     depends_on:
       - postgres
 
@@ -35,9 +42,11 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./apps/dashboard:/app/apps/dashboard
-      - ./packages:/app/packages
-      - /app/node_modules
+      - ./apps/dashboard/app:/app/apps/dashboard/app
+      - ./apps/dashboard/components:/app/apps/dashboard/components
+      - ./apps/dashboard/lib:/app/apps/dashboard/lib
+      - ./apps/dashboard/hooks:/app/apps/dashboard/hooks
+      - ./packages/shared-types/src:/app/packages/shared-types/src
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:3333
     depends_on:
