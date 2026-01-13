@@ -1,6 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Alert from '#models/alert'
 import type { Alert as AlertResponse } from '@repo/shared-types'
+import { createAlertValidator, updateAlertValidator } from '#validators/alert_validator'
 
 export default class AlertsController {
   async index({}: HttpContext): Promise<AlertResponse[]> {
@@ -20,13 +21,9 @@ export default class AlertsController {
   }
 
   async store({ request }: HttpContext): Promise<AlertResponse> {
-    const alert = await Alert.create({
-      customerId: request.input('customerId'),
-      type: request.input('type'),
-      severity: request.input('severity'),
-      message: request.input('message'),
-      resolved: request.input('resolved'),
-    })
+    const payload = await request.validateUsing(createAlertValidator)
+
+    const alert = await Alert.create(payload)
 
     const response: AlertResponse = alert.serialize() as AlertResponse
 
@@ -36,13 +33,9 @@ export default class AlertsController {
   async update({ params, request }: HttpContext): Promise<AlertResponse> {
     const alert = await Alert.findOrFail(params.id)
 
-    alert.merge({
-      customerId: request.input('customerId'),
-      type: request.input('type'),
-      severity: request.input('severity'),
-      message: request.input('message'),
-      resolved: request.input('resolved'),
-    })
+    const payload = await request.validateUsing(updateAlertValidator)
+
+    alert.merge(payload)
 
     await alert.save()
 

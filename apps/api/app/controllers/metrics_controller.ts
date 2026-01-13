@@ -7,14 +7,19 @@ import db from '@adonisjs/lucid/services/db'
 export default class MetricsController {
   async index({}: HttpContext): Promise<DashboardMetrics> {
     // 1. MRR Calculation (Sum of planAmount for active subscriptions)
-    // Assuming monthly billing for MVP simplicity. If yearly, we'd need to divide by 12.
-    // Ideally we verify planInterval.
-    const mrrResult = await Subscription.query()
-      .where('status', 'active')
-      .sum('plan_amount as total')
-      .first()
+    // For yearly subscriptions, divide by 12 to get monthly equivalent
+    const mrrResult = await db.rawQuery(`
+      SELECT SUM(
+        CASE
+          WHEN plan_interval = 'yearly' THEN plan_amount / 12
+          ELSE plan_amount
+        END
+      ) as total
+      FROM subscriptions
+      WHERE status = 'active'
+    `)
 
-    const mrr = mrrResult?.$extras.total || 0
+    const mrr = mrrResult.rows[0]?.total || 0
 
     // 2. Active Subscriptions Count
     const activeSubsResult = await Subscription.query()

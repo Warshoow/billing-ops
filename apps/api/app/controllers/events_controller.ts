@@ -1,10 +1,11 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Customer from '#models/customer'
 import { AnyBillingOpsEvent } from '@repo/shared-types'
+import { billingOpsEventValidator } from '#validators/event_validator'
 
 export default class EventsController {
   async store({ request, response }: HttpContext) {
-    const payload = request.body() as AnyBillingOpsEvent
+    const payload = await request.validateUsing(billingOpsEventValidator)
 
     console.log(`[Events] Received event: ${payload.event}`)
 
