@@ -1,0 +1,17 @@
+
+services:
+  stripe-listen:
+    image: stripe/stripe-cli:latest
+    container_name: stripe-listener
+    command: listen --api-key ${STRIPE_API_KEY} --forward-to http://host.docker.internal:3333/webhooks/stripe
+    environment:
+      - STRIPE_API_KEY=${STRIPE_API_KEY}
+    stdin_open: true
+    tty: true
+    networks:
+      - stripe-network
+    restart: unless-stopped
+
+networks:
+  stripe-network:
+    driver: bridge
