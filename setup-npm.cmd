@@ -2,12 +2,12 @@
 setlocal enabledelayedexpansion
 
 echo ===============================================
-echo   BillingOps - Setup automatise
+echo   BillingOps - Setup automatise (npm)
 echo ===============================================
 echo.
 
 REM Check Node.js
-echo [1/8] Verification de Node.js...
+echo [1/7] Verification de Node.js...
 where node >nul 2>&1
 if %errorlevel% neq 0 (
     echo [ERREUR] Node.js n'est pas installe. Veuillez installer Node.js 22+ depuis https://nodejs.org/
@@ -18,24 +18,19 @@ for /f "tokens=1" %%v in ('node -v') do set NODE_VERSION=%%v
 echo [OK] Node.js %NODE_VERSION% detecte
 echo.
 
-REM Check pnpm
-echo [2/8] Verification de pnpm...
-where pnpm >nul 2>&1
+REM Check npm
+echo [2/7] Verification de npm...
+where npm >nul 2>&1
 if %errorlevel% neq 0 (
-    echo [ERREUR] pnpm n'est pas installe.
-    echo Installation de pnpm...
-    npm install -g pnpm
-    if %errorlevel% neq 0 (
-        echo [ERREUR] Echec de l'installation de pnpm
-        pause
-        exit /b 1
-    )
+    echo [ERREUR] npm n'est pas installe (devrait etre inclus avec Node.js)
+    pause
+    exit /b 1
 )
-echo [OK] pnpm detecte
+echo [OK] npm detecte
 echo.
 
 REM Check Docker
-echo [3/8] Verification de Docker...
+echo [3/7] Verification de Docker...
 where docker >nul 2>&1
 if %errorlevel% neq 0 (
     echo [ERREUR] Docker n'est pas installe. Veuillez installer Docker Desktop depuis https://www.docker.com/products/docker-desktop/
@@ -52,8 +47,8 @@ echo [OK] Docker est installe et demarre
 echo.
 
 REM Install dependencies
-echo [4/8] Installation des dependances...
-call pnpm install
+echo [4/7] Installation des dependances...
+call npm install
 if %errorlevel% neq 0 (
     echo [ERREUR] Echec de l'installation des dependances
     pause
@@ -63,7 +58,7 @@ echo [OK] Dependances installees
 echo.
 
 REM Setup environment files
-echo [5/8] Configuration des fichiers d'environnement...
+echo [5/7] Configuration des fichiers d'environnement...
 
 REM API .env
 if not exist "apps\api\.env" (
@@ -101,7 +96,7 @@ echo.
 pause
 
 REM Start PostgreSQL
-echo [6/8] Demarrage de PostgreSQL avec Docker...
+echo [6/7] Demarrage de PostgreSQL avec Docker...
 docker-compose up -d
 if %errorlevel% neq 0 (
     echo [ERREUR] Echec du demarrage de PostgreSQL
@@ -114,7 +109,7 @@ timeout /t 5 /nobreak >nul
 echo.
 
 REM Run migrations
-echo [7/8] Execution des migrations...
+echo [7/7] Execution des migrations...
 cd apps\api
 call node ace migration:run
 if %errorlevel% neq 0 (
@@ -128,7 +123,7 @@ echo [OK] Migrations executees
 echo.
 
 REM Ask about seeders
-echo [8/8] Voulez-vous charger les donnees de demonstration ? (Y/N)
+echo Voulez-vous charger les donnees de demonstration ? (Y/N)
 set /p SEED_CHOICE="Entrez votre choix: "
 if /i "%SEED_CHOICE%"=="Y" (
     echo Chargement des donnees de demonstration...
@@ -147,7 +142,10 @@ echo ===============================================
 echo.
 echo Prochaines etapes:
 echo   1. Configurez vos cles Stripe dans apps\api\.env
-echo   2. Lancez le projet avec: pnpm dev:safe
+echo   2. Lancez l'API avec: cd apps\api ^&^& npm run dev
+echo   3. Lancez le Dashboard avec: cd apps\dashboard ^&^& npm run dev
+echo.
+echo Note: Avec npm, vous devez lancer l'API et le Dashboard dans des terminaux separes
 echo.
 echo Pour plus d'informations, consultez le README.md
 echo.
