@@ -29,7 +29,6 @@ export default class EventsController {
       {
         email: data.email,
         externalUserId: data.external_user_id,
-        // name isn't in our model yet, but could be added
         status: 'active', // Default status
       }
     )

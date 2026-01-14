@@ -1,3 +1,5 @@
+import { DashboardMetrics, Customer, Subscription, Alert } from "@repo/shared-types";
+
 class ApiClient {
   private baseURL: string;
 
@@ -32,14 +34,14 @@ class ApiClient {
     return this.request<T>(endpoint, { method: "GET" });
   }
 
-  async post<T>(endpoint: string, data?: any): Promise<T> {
+  async post<T>(endpoint: string, data?: unknown): Promise<T> {
     return this.request<T>(endpoint, {
       method: "POST",
       body: JSON.stringify(data),
     });
   }
 
-  async put<T>(endpoint: string, data?: any): Promise<T> {
+  async put<T>(endpoint: string, data?: unknown): Promise<T> {
     return this.request<T>(endpoint, {
       method: "PUT",
       body: JSON.stringify(data),
@@ -50,28 +52,28 @@ class ApiClient {
     return this.request<T>(endpoint, { method: "DELETE" });
   }
 
-  // Action methods
-  async retryPayment(id: string): Promise<any> {
+  // Action methods - Retournent des objets Stripe (PaymentIntent/Subscription)
+  async retryPayment(id: string): Promise<unknown> {
     return this.post(`/payments/${id}/retry`);
   }
 
-  async cancelSubscription(id: string): Promise<any> {
+  async cancelSubscription(id: string): Promise<unknown> {
     return this.post(`/subscriptions/${id}/cancel`);
   }
 
-  async fetchSubscriptions(): Promise<any> {
+  async fetchSubscriptions(): Promise<Subscription[]> {
     return this.get("/subscriptions");
   }
 
-  async getMetrics(): Promise<any> {
+  async getMetrics(): Promise<DashboardMetrics> {
     return this.get("/metrics");
   }
 
-  async getAlerts(): Promise<any> {
+  async getAlerts(): Promise<Alert[]> {
     return this.get("/alerts");
   }
 
-  async fetchCustomers(): Promise<any> {
+  async fetchCustomers(): Promise<Customer[]> {
     return this.get("/customers");
   }
 }

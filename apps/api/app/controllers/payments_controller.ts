@@ -8,6 +8,7 @@ export default class PaymentsController {
     const payments = await Payment.query()
       .preload('customer')
       .if(request.input('status'), (query) => query.where('status', request.input('status')))
+      .limit(50)
 
     const response: PaymentResponse[] = payments.map(
       (payment) => payment.serialize() as PaymentResponse
