@@ -4,37 +4,27 @@ import StripeEventHandler from '#services/stripe_event_handler'
 import Stripe from 'stripe'
 
 export default class WebhooksController {
-  async handle({ request, response }: HttpContext) {
+  async handle(ctx: HttpContext) {
+    const { request, response } = ctx
     const signature = request.header('stripe-signature')
 
     if (!signature) {
       return response.badRequest('Missing stripe-signature header')
     }
 
+    // Read raw body from Node.js request stream (bodyparser is not applied to this route)
+    const rawBody = await this.readRawBody(ctx)
+
+    if (!rawBody || rawBody.length === 0) {
+      console.error('[Webhooks] Empty or missing body')
+      return response.badRequest('Empty body')
+    }
+
+    console.log('[Webhooks] Raw body size:', rawBody.length, 'bytes')
+
     let event: Stripe.Event
-    let rawBody: string | Buffer
 
     try {
-      // Try to get raw body - AdonisJS 6 approach
-      // First attempt: use request.raw() if available
-      if (typeof (request as any).raw === 'function') {
-        rawBody = await (request as any).raw()
-      } else {
-        // Fallback: Read from Node.js request stream
-        const chunks: Buffer[] = []
-        const nodeRequest = request.request // Access underlying Node.js IncomingMessage
-
-        await new Promise<void>((resolve, reject) => {
-          nodeRequest.on('data', (chunk: Buffer) => {
-            chunks.push(chunk)
-          })
-          nodeRequest.on('end', () => resolve())
-          nodeRequest.on('error', (err: Error) => reject(err))
-        })
-
-        rawBody = Buffer.concat(chunks)
-      }
-
       // Verify webhook signature and construct event
       event = stripeService.constructEvent(rawBody, signature)
     } catch (err: any) {
@@ -44,28 +34,63 @@ export default class WebhooksController {
 
     console.log(`[Webhooks] Received event: ${event.type}`)
 
+    // Respond immediately to avoid timeout
+    response.ok({ received: true })
+
+    // Process the event asynchronously in background
     const handler = new StripeEventHandler()
 
-    switch (event.type) {
-      case 'payment_intent.succeeded':
-      case 'payment_intent.created':
-      case 'payment_intent.processing':
-      case 'payment_intent.payment_failed':
-        await handler.handlePaymentIntent(event.data.object as Stripe.PaymentIntent)
-        break
-      case 'customer.subscription.created':
-      case 'customer.subscription.updated':
-      case 'customer.subscription.deleted':
-        await handler.handleSubscription(event.data.object as Stripe.Subscription)
-        break
-      case 'customer.created':
-      case 'customer.updated':
-        await handler.handleCustomer(event.data.object as Stripe.Customer)
-        break
-      default:
-        console.log(`[Webhooks] Unhandled event type: ${event.type}`)
-    }
+    // Don't await - let it process in background
+    ;(async () => {
+      try {
+        switch (event.type) {
+          case 'payment_intent.succeeded':
+          case 'payment_intent.created':
+          case 'payment_intent.processing':
+          case 'payment_intent.payment_failed':
+            await handler.handlePaymentIntent(event.data.object as Stripe.PaymentIntent)
+            break
+          case 'customer.subscription.created':
+          case 'customer.subscription.updated':
+          case 'customer.subscription.deleted':
+            await handler.handleSubscription(event.data.object as Stripe.Subscription)
+            break
+          case 'customer.created':
+          case 'customer.updated':
+            await handler.handleCustomer(event.data.object as Stripe.Customer)
+            break
+          default:
+            console.log(`[Webhooks] Unhandled event type: ${event.type}`)
+        }
+        console.log(`[Webhooks] Successfully processed event: ${event.type}`)
+      } catch (error) {
+        console.error(`[Webhooks] Error processing event ${event.type}:`, error)
+      }
+    })()
 
-    return response.ok({ received: true })
+    return
+  }
+
+  /**
+   * Read raw body from Node.js request stream
+   * Since bodyparser is not applied to this route, we need to manually read the stream
+   */
+  private async readRawBody(ctx: HttpContext): Promise<Buffer> {
+    return new Promise((resolve, reject) => {
+      const chunks: Buffer[] = []
+      const req = ctx.request.request
+
+      req.on('data', (chunk: Buffer) => {
+        chunks.push(chunk)
+      })
+
+      req.on('end', () => {
+        resolve(Buffer.concat(chunks))
+      })
+
+      req.on('error', (err) => {
+        reject(err)
+      })
+    })
   }
 }

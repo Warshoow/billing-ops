@@ -31,11 +31,18 @@ server.use([
 /**
  * The router middleware stack runs middleware on all the HTTP
  * requests with a registered route.
+ *
+ * NOTE: Bodyparser is NOT applied globally to allow raw body access
+ * for Stripe webhooks. It's applied selectively in routes.ts AFTER
+ * the webhook route is defined.
  */
-router.use([() => import('@adonisjs/core/bodyparser_middleware')])
+// Bodyparser removed from global - applied selectively in routes.ts
+// router.use([() => import('@adonisjs/core/bodyparser_middleware')])
 
 /**
  * Named middleware collection must be explicitly assigned to
  * the routes or the routes group.
  */
-export const middleware = router.named({})
+export const middleware = router.named({
+  // Empty for now - add named middleware here if needed
+})

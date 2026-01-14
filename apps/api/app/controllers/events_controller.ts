@@ -1,6 +1,5 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Customer from '#models/customer'
-import { AnyBillingOpsEvent } from '@repo/shared-types'
 import { billingOpsEventValidator } from '#validators/event_validator'
 
 export default class EventsController {
