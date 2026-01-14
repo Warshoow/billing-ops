@@ -16,10 +16,12 @@ export default function Home() {
         []
     );
 
-    const { data: paymentsData, loading: paymentsLoading, error: paymentsError } = useFetch<Payment[]>(async (): Promise<Payment[]> => {
+    const [refreshKey, setRefreshKey] = useState(0);
+
+    const { data: paymentsData, loading: paymentsLoading } = useFetch<Payment[]>(async (): Promise<Payment[]> => {
         const response = await apiClient.get('/payments?status=failed') as any;
         return response;
-    }, []);
+    }, [refreshKey]);
 
     const [payments, setPayments] = useState<Payment[]>([]);
 
@@ -63,7 +65,7 @@ export default function Home() {
 
             <ChartAreaInteractive data={metrics.revenueHistory || []}/>
             <Card className="p-6">
-                <DataTableDemo data={payments} onUpdate={() => window.location.reload()}/>
+                <DataTableDemo data={payments} onUpdate={() => setRefreshKey(prev => prev + 1)}/>
             </Card>
         </>
     )

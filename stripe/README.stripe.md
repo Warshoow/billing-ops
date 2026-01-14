@@ -91,7 +91,11 @@ docker-compose -f docker-compose.stripe.yml logs -f
 ### Le webhook ne reçoit rien
 1. Vérifiez que votre API tourne sur le port 3333
 2. Vérifiez que le `STRIPE_WEBHOOK_SECRET` dans l'API correspond au secret affiché par le listener
-3. Changer possiblement l'host dans `apps/api/.env` pour cette valeur 0.0.0.0 (host.docker.internal)
+3. **Important** : Pour que Stripe CLI puisse résoudre les requêtes, configurez dans `apps/api/.env` :
+   ```
+   HOST=0.0.0.0
+   ```
+   Cela permet au listener Stripe CLI d'accéder à l'API via `host.docker.internal`
 
 ### Timeout errors
 L'API répond maintenant immédiatement au webhook et traite les événements en arrière-plan.
@@ -103,7 +107,7 @@ cd my-turborepo/apps/api
 npm run dev
 ```
 
-## Commande aletrnative pour lancer stripe cli dans des bash séparer du projet
+## Commande alternative pour lancer stripe cli dans des bash séparés du projet
 
 # Lancement cli && listen
 ```sh

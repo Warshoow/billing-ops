@@ -204,7 +204,7 @@ BillingOps utilise les webhooks Stripe pour synchroniser automatiquement les don
    ./stripe-trigger.sh payment_intent.succeeded # Linux/Mac
    ```
 
-   Voir [./stripe/README.stripe.md](README.stripe.md) pour plus de détails.
+   Voir [./stripe/README.stripe.md](./stripe/README.stripe.md) pour plus de détails.
 
 3. **Événements supportés**
    - `customer.created` / `customer.updated` / `customer.deleted`
