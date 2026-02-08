@@ -16,7 +16,7 @@ export default class Customer extends BaseModel {
   declare email: string
 
   @column()
-  declare stripeCustomerId: string
+  declare stripeCustomerId: string | null
 
   @column()
   declare status: 'active' | 'at_risk' | 'churned'

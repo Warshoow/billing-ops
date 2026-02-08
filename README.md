@@ -1,8 +1,8 @@
 # BillingOps
 
-**Dashboard de décision simplifié pour Stripe - MVP**
+**Microservice de facturation Stripe — Observabilité + Gestion**
 
-Projet test qui offre une vue claire des paiements et abonnements Stripe, sans la complexité de leur interface. Focus sur l'essentiel pour prendre des décisions rapidement.
+Microservice dédié au billing qui s'intègre à Stripe pour offrir une vue claire des paiements et abonnements, et expose une API de gestion pour que votre produit SaaS puisse gérer le billing sans interagir directement avec Stripe.
 
 ---
 
@@ -124,11 +124,19 @@ pnpm dev
 
 ## Fonctionnalités
 
+### Observabilité (Dashboard)
 - **Métriques** : MRR, churn rate, paiements échoués, revenus (180j)
 - **Gestion** : Clients, abonnements, paiements (CRUD + actions)
 - **Alertes** : Notifications automatiques sur événements critiques
 - **Webhooks Stripe** : Synchronisation temps réel
 - **Simulation** : Endpoints de test pour démos
+
+### API de Gestion Billing (Service-to-Service)
+- **Création client Stripe** : Le produit SaaS envoie un `externalUserId` + email, BillingOps crée le client Stripe
+- **Souscription via Checkout** : Retourne une URL Stripe Checkout, le SaaS redirige l'utilisateur
+- **Annulation** : Gracieuse (fin de période) par défaut, immédiate en option
+- **Retry paiement** : Relance un paiement échoué
+- **Authentification** : API key via header `x-api-key`
 
 ---
 
@@ -159,6 +167,7 @@ cd apps/api && node ace test    # Lancer les tests
 
 ## API Endpoints
 
+### Dashboard (pas d'authentification)
 - `GET /metrics` - Métriques du dashboard
 - `GET /customers` - Liste des clients
 - `GET /payments` - Liste des paiements
@@ -168,6 +177,33 @@ cd apps/api && node ace test    # Lancer les tests
 - `GET /alerts` - Alertes système
 - `POST /webhooks/stripe` - Webhooks Stripe
 - `POST /simulation/*` - Endpoints de simulation
+
+### Billing Management API (requiert `x-api-key`)
+- `POST /billing/customers` - Créer un client Stripe
+- `POST /billing/subscriptions` - Créer une session Stripe Checkout pour souscrire
+- `POST /billing/subscriptions/cancel` - Annuler un abonnement
+- `POST /billing/payments/retry` - Relancer un paiement échoué
+
+**Exemple d'intégration SaaS :**
+```bash
+# 1. Créer un client Stripe lors de l'inscription
+curl -X POST http://localhost:3333/billing/customers \
+  -H "x-api-key: votre_clé" \
+  -H "Content-Type: application/json" \
+  -d '{"externalUserId": "usr_123", "email": "jane@example.com"}'
+
+# 2. Souscrire à un plan (retourne une URL Checkout)
+curl -X POST http://localhost:3333/billing/subscriptions \
+  -H "x-api-key: votre_clé" \
+  -H "Content-Type: application/json" \
+  -d '{"externalUserId": "usr_123", "priceId": "price_xxx", "successUrl": "https://app.com/success", "cancelUrl": "https://app.com/cancel"}'
+
+# 3. Annuler (gracieux par défaut)
+curl -X POST http://localhost:3333/billing/subscriptions/cancel \
+  -H "x-api-key: votre_clé" \
+  -H "Content-Type: application/json" \
+  -d '{"externalUserId": "usr_123"}'
+```
 
 ---
 
@@ -291,4 +327,4 @@ Cette configuration garantit que la signature Stripe peut être vérifiée corre
 
 ---
 
-**BillingOps** - L'essentiel de Stripe, sans la complexité
+**BillingOps** - Microservice billing : observabilité + gestion Stripe, sans la complexité

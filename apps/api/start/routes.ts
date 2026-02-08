@@ -8,8 +8,10 @@
 */
 
 import router from '@adonisjs/core/services/router'
+import { middleware } from '#start/kernel'
 
 const WebhooksController = () => import('#controllers/webhooks_controller')
+const BillingController = () => import('#controllers/billing_controller')
 const EventsController = () => import('#controllers/events_controller')
 const SubscriptionsController = () => import('#controllers/subscriptions_controller')
 const CustomersController = () => import('#controllers/customers_controller')
@@ -73,3 +75,17 @@ router.group(() => {
     })
     .prefix('/simulation')
 })
+
+/**
+ * Billing Management API — for SaaS product integration
+ * Authenticated via x-api-key header
+ */
+router
+  .group(() => {
+    router.post('/customers', [BillingController, 'createCustomer'])
+    router.post('/subscriptions', [BillingController, 'createSubscription'])
+    router.post('/subscriptions/cancel', [BillingController, 'cancelSubscription'])
+    router.post('/payments/retry', [BillingController, 'retryPayment'])
+  })
+  .prefix('/billing')
+  .use([middleware.bodyparser(), middleware.apiKey()])

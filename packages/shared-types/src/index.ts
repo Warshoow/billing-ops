@@ -3,3 +3,4 @@ export * from "./subscription";
 export * from "./customer";
 export * from "./metrics";
 export * from "./events";
+export * from "./billing";

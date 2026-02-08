@@ -64,6 +64,50 @@ export class StripeService {
   }
 
   /**
+   * Create a Stripe customer
+   */
+  async createCustomer(params: { email: string; name?: string; metadata?: Record<string, string> }) {
+    const stripe = this.ensureStripeInitialized()
+    return stripe.customers.create({
+      email: params.email,
+      name: params.name,
+      metadata: params.metadata,
+    })
+  }
+
+  /**
+   * Create a Stripe Checkout Session for subscription
+   */
+  async createCheckoutSession(params: {
+    customerId: string
+    priceId: string
+    successUrl: string
+    cancelUrl: string
+  }) {
+    const stripe = this.ensureStripeInitialized()
+    return stripe.checkout.sessions.create({
+      customer: params.customerId,
+      mode: 'subscription',
+      line_items: [{ price: params.priceId, quantity: 1 }],
+      success_url: params.successUrl,
+      cancel_url: params.cancelUrl,
+    })
+  }
+
+  /**
+   * Cancel a subscription — supports immediate or end-of-period
+   */
+  async cancelSubscriptionGraceful(subscriptionId: string, cancelAtPeriodEnd: boolean) {
+    const stripe = this.ensureStripeInitialized()
+    if (cancelAtPeriodEnd) {
+      return stripe.subscriptions.update(subscriptionId, {
+        cancel_at_period_end: true,
+      })
+    }
+    return stripe.subscriptions.cancel(subscriptionId)
+  }
+
+  /**
    * Construct a webhook event from the request payload and signature
    */
   constructEvent(payload: string | Buffer, signature: string) {

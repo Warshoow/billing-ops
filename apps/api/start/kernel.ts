@@ -44,5 +44,6 @@ server.use([
  * the routes or the routes group.
  */
 export const middleware = router.named({
-  // Empty for now - add named middleware here if needed
+  bodyparser: () => import('@adonisjs/core/bodyparser_middleware'),
+  apiKey: () => import('#middleware/api_key_auth_middleware'),
 })
