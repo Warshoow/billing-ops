@@ -50,6 +50,9 @@ docker-compose -f docker-compose.dev.yml up  # dev services
 - AdonisJS uses `#imports` path aliases (e.g., `#controllers/*`, `#services/*`, `#models/*`) — defined in `package.json` `imports` field, not tsconfig paths.
 - Models use Lucid ORM with UUID primary keys.
 - The `/billing` route group uses API key auth (`x-api-key` header) and follows an **optimistic update** pattern: call Stripe first, update local DB, webhook eventually syncs.
+- **Webhook idempotency**: processed Stripe event IDs are stored in a `stripe_events` table. Duplicate webhook deliveries are detected and skipped.
+- **Input validation**: all CRUD controllers validate input via VineJS validators (`app/validators/`). Validators exist for customers, payments, subscriptions, alerts, billing, and events.
+- **Pagination**: list endpoints support `?page=` and `?perPage=` query params and return Lucid paginated responses (`{ data, meta }`). Dashboard pages handle both paginated and raw array responses for backwards compatibility.
 - Shared types are consumed via `@repo/shared-types` workspace dependency.
 
 ## Code style

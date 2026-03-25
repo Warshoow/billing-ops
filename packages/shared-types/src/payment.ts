@@ -7,6 +7,9 @@ export interface Payment {
   status: 'succeeded' | 'failed' | 'pending'
   customerId: string
   stripePaymentId: string
+  failureCode: string | null
+  failureMessage: string | null
+  retryCount: number
   createdAt: string
   updatedAt: string,
   customer: Customer

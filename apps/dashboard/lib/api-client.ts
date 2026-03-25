@@ -73,6 +73,10 @@ class ApiClient {
     return this.get("/alerts");
   }
 
+  async resolveAlert(id: string): Promise<Alert> {
+    return this.post(`/alerts/${id}/resolve`);
+  }
+
   async fetchCustomers(): Promise<Customer[]> {
     return this.get("/customers");
   }

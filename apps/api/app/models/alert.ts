@@ -23,6 +23,13 @@ export default class Alert extends BaseModel {
   declare resolved: boolean
 
   @column.dateTime({
+    serialize: (value: DateTime | null) => {
+      return value?.toISO() ?? null
+    },
+  })
+  declare resolvedAt: DateTime | null
+
+  @column.dateTime({
     autoCreate: true,
     serialize: (value: DateTime | null) => {
       return value?.toISO() ?? value

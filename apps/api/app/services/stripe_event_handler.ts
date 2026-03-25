@@ -33,6 +33,7 @@ export default class StripeEventHandler {
 
     // Only create payment if we have a valid customer
     if (customerId) {
+      const lastError = paymentIntent.last_payment_error
       await Payment.updateOrCreate(
         { stripePaymentId: paymentIntent.id },
         {
@@ -41,6 +42,8 @@ export default class StripeEventHandler {
           currency: paymentIntent.currency,
           status: this.mapPaymentStatus(paymentIntent.status),
           customerId: customerId,
+          failureCode: lastError?.code ?? null,
+          failureMessage: lastError?.message ?? null,
         }
       )
     } else {

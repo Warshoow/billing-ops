@@ -126,9 +126,11 @@ pnpm dev
 
 ### Observabilité (Dashboard)
 - **Métriques** : MRR, churn rate, paiements échoués, revenus (180j)
-- **Gestion** : Clients, abonnements, paiements (CRUD + actions)
-- **Alertes** : Notifications automatiques sur événements critiques
-- **Webhooks Stripe** : Synchronisation temps réel
+- **Gestion** : Clients, abonnements, paiements (CRUD + actions, paginés)
+- **Alertes** : Notifications automatiques sur événements critiques, résolution depuis l'UI
+- **Webhooks Stripe** : Synchronisation temps réel avec idempotence (les doublons sont ignorés)
+- **Détails d'échec** : Code et message d'erreur Stripe capturés sur les paiements échoués, compteur de retry
+- **Validation** : Toutes les entrées CRUD sont validées via VineJS
 - **Simulation** : Endpoints de test pour démos
 
 ### API de Gestion Billing (Service-to-Service)
@@ -169,13 +171,14 @@ cd apps/api && node ace test    # Lancer les tests
 
 ### Dashboard (pas d'authentification)
 - `GET /metrics` - Métriques du dashboard
-- `GET /customers` - Liste des clients
-- `GET /payments` - Liste des paiements
+- `GET /customers` - Liste des clients (paginé : `?page=1&perPage=50&status=active`)
+- `GET /payments` - Liste des paiements (paginé : `?page=1&perPage=50&status=failed`)
 - `POST /payments/:id/retry` - Réessayer un paiement
-- `GET /subscriptions` - Liste des abonnements
+- `GET /subscriptions` - Liste des abonnements (paginé : `?page=1&perPage=50&status=active`)
 - `POST /subscriptions/:id/cancel` - Annuler un abonnement
 - `GET /alerts` - Alertes système
-- `POST /webhooks/stripe` - Webhooks Stripe
+- `POST /alerts/:id/resolve` - Marquer une alerte comme résolue
+- `POST /webhooks/stripe` - Webhooks Stripe (idempotent — les événements dupliqués sont ignorés)
 - `POST /simulation/*` - Endpoints de simulation
 
 ### Billing Management API (requiert `x-api-key`)

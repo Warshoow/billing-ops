@@ -45,6 +45,7 @@ router.group(() => {
   router.get('/alerts/:id', [AlertsController, 'show'])
   router.post('/alerts', [AlertsController, 'store'])
   router.put('/alerts/:id', [AlertsController, 'update'])
+  router.post('/alerts/:id/resolve', [AlertsController, 'resolve'])
   router.delete('/alerts/:id', [AlertsController, 'destroy'])
 
   // Payments

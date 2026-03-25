@@ -1,60 +1,45 @@
 import type { HttpContext } from '@adonisjs/core/http'
-import type { Payment as PaymentResponse } from '@repo/shared-types'
 import Payment from '#models/payment'
 import stripeService from '#services/stripe_service'
+import { storePaymentValidator, updatePaymentValidator } from '#validators/payment_validator'
 
 export default class PaymentsController {
-  async index({ request }: HttpContext): Promise<PaymentResponse[]> {
-    const payments = await Payment.query()
+  async index({ request }: HttpContext) {
+    const page = request.input('page', 1)
+    const perPage = request.input('perPage', 50)
+
+    const query = Payment.query()
       .preload('customer')
-      .if(request.input('status'), (query) => query.where('status', request.input('status')))
-      .limit(50)
+      .if(request.input('status'), (q) => q.where('status', request.input('status')))
+      .orderBy('createdAt', 'desc')
 
-    const response: PaymentResponse[] = payments.map(
-      (payment) => payment.serialize() as PaymentResponse
-    )
-
-    return response
+    const result = await query.paginate(page, perPage)
+    return result.serialize()
   }
 
-  async show({ params }: HttpContext): Promise<PaymentResponse> {
+  async show({ params }: HttpContext) {
     const payment = await Payment.findOrFail(params.id)
+    await payment.load('customer')
 
-    const response: PaymentResponse = payment.serialize() as PaymentResponse
-
-    return response
+    return payment.serialize()
   }
 
-  async store({ request }: HttpContext): Promise<PaymentResponse> {
-    const payment = await Payment.create({
-      customerId: request.input('customerId'),
-      amount: request.input('amount'),
-      currency: request.input('currency'),
-      status: request.input('status'),
-      stripePaymentId: request.input('stripePaymentId'),
-    })
+  async store({ request }: HttpContext) {
+    const data = await request.validateUsing(storePaymentValidator)
 
-    const response: PaymentResponse = payment.serialize() as PaymentResponse
+    const payment = await Payment.create(data)
 
-    return response
+    return payment.serialize()
   }
 
-  async update({ params, request }: HttpContext): Promise<PaymentResponse> {
+  async update({ params, request }: HttpContext) {
     const payment = await Payment.findOrFail(params.id)
+    const data = await request.validateUsing(updatePaymentValidator)
 
-    payment.merge({
-      customerId: request.input('customerId'),
-      amount: request.input('amount'),
-      currency: request.input('currency'),
-      status: request.input('status'),
-      stripePaymentId: request.input('stripePaymentId'),
-    })
-
+    payment.merge(data)
     await payment.save()
 
-    const response: PaymentResponse = payment.serialize() as PaymentResponse
-
-    return response
+    return payment.serialize()
   }
 
   async destroy({ params }: HttpContext): Promise<void> {
@@ -72,6 +57,16 @@ export default class PaymentsController {
 
     try {
       const result = await stripeService.retryPayment(payment.stripePaymentId)
+
+      // Update local payment status optimistically
+      payment.status = result.status === 'succeeded' ? 'succeeded' : 'pending'
+      payment.retryCount = (payment.retryCount || 0) + 1
+      if (result.status === 'succeeded') {
+        payment.failureCode = null
+        payment.failureMessage = null
+      }
+      await payment.save()
+
       return response.ok(result)
     } catch (error: any) {
       return response.badRequest({ message: error.message })

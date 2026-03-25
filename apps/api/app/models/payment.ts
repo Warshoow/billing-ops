@@ -22,6 +22,15 @@ export default class Payment extends BaseModel {
   @column()
   declare stripePaymentId: string
 
+  @column()
+  declare failureCode: string | null
+
+  @column()
+  declare failureMessage: string | null
+
+  @column()
+  declare retryCount: number
+
   @column.dateTime({
     autoCreate: true,
     serialize: (value: DateTime | null) => {

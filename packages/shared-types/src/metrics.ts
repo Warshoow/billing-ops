@@ -19,4 +19,5 @@ export interface Alert {
   customerId: string;
   createdAt: string;
   resolved: boolean;
+  resolvedAt: string | null;
 }

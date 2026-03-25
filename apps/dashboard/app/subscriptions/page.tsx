@@ -1,17 +1,22 @@
 'use client'
-import { useEffect, useState } from 'react'
 import { Subscription } from '@repo/shared-types'
 import { SubscriptionsTable } from '@/components/subscriptions-table'
 import { useFetch } from '@/hooks/useFetch'
 import { apiClient } from '@/lib/api-client'
 import { Card } from '@/components/ui/card'
-import { Loader2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Loader2, RefreshCw } from 'lucide-react'
 
 export default function SubscriptionsPage() {
-  const { data, loading, error, refetch } = useFetch<Subscription[]>(
+  const { data, loading, error, refetch } = useFetch<any>(
     async () => await apiClient.fetchSubscriptions(),
     []
   )
+
+  // Handle both paginated response and raw array
+  const subscriptions: Subscription[] = data
+    ? (Array.isArray(data) ? data : data.data ?? [])
+    : []
 
   if (loading) {
     return (
@@ -23,8 +28,13 @@ export default function SubscriptionsPage() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-destructive">Error loading subscriptions: {error.message}</p>
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+        <p className="text-destructive">Failed to load subscriptions</p>
+        <p className="text-muted-foreground text-sm">{error.message}</p>
+        <Button variant="outline" onClick={refetch}>
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Retry
+        </Button>
       </div>
     )
   }
@@ -39,7 +49,7 @@ export default function SubscriptionsPage() {
       </div>
 
       <Card className="p-6">
-        <SubscriptionsTable data={data || []} onUpdate={refetch} />
+        <SubscriptionsTable data={subscriptions} onUpdate={refetch} />
       </Card>
     </div>
   )

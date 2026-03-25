@@ -1,7 +1,9 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import stripeService from '#services/stripe_service'
 import StripeEventHandler from '#services/stripe_event_handler'
+import StripeEvent from '#models/stripe_event'
 import Stripe from 'stripe'
+import { DateTime } from 'luxon'
 
 export default class WebhooksController {
   async handle(ctx: HttpContext) {
@@ -20,8 +22,6 @@ export default class WebhooksController {
       return response.badRequest('Empty body')
     }
 
-    console.log('[Webhooks] Raw body size:', rawBody.length, 'bytes')
-
     let event: Stripe.Event
 
     try {
@@ -31,6 +31,20 @@ export default class WebhooksController {
       console.error(`[Webhooks] Signature verification failed: ${err.message}`)
       return response.badRequest(`Webhook Error: ${err.message}`)
     }
+
+    // Idempotency check: skip already-processed events
+    const existing = await StripeEvent.find(event.id)
+    if (existing) {
+      console.log(`[Webhooks] Skipping duplicate event: ${event.id} (${event.type})`)
+      return response.ok({ received: true, duplicate: true })
+    }
+
+    // Record event as processed before handling (prevents re-processing on retry)
+    await StripeEvent.create({
+      eventId: event.id,
+      eventType: event.type,
+      processedAt: DateTime.now(),
+    })
 
     console.log(`[Webhooks] Received event: ${event.type}`)
 

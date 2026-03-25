@@ -2,7 +2,7 @@ export interface Customer {
   id: string;
   externalUserId: string;
   email: string;
-  stripeCustomerId: string;
+  stripeCustomerId: string | null;
   status: "active" | "at_risk" | "churned";
   lifetimeValue: number;
   createdAt: string | null;

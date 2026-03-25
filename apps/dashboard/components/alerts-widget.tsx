@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { AlertCircle, AlertTriangle, Info, CheckCircle, Filter } from "lucide-react"
+import { AlertCircle, AlertTriangle, Info, CheckCircle, Filter, RefreshCw, Check } from "lucide-react"
 import { useFetch } from "@/hooks/useFetch"
 import { apiClient } from "@/lib/api-client"
 import { Alert as AlertType } from "@repo/shared-types"
@@ -13,7 +13,6 @@ import {
     DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
-    DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu"
 
 const severityMap = {
@@ -25,7 +24,8 @@ const severityMap = {
 
 export function AlertsWidget() {
   const [filterSeverity, setFilterSeverity] = useState<string | null>(null)
-  
+  const [resolvingId, setResolvingId] = useState<string | null>(null)
+
   const { data: alerts, loading, error, refetch } = useFetch<AlertType[]>(
     async () => await apiClient.getAlerts(),
     []
@@ -42,7 +42,33 @@ export function AlertsWidget() {
     })
     .slice(0, 5)
 
-  if (loading) return <div>Loading alerts...</div>
+  const handleResolve = async (alertId: string) => {
+    setResolvingId(alertId)
+    try {
+      await apiClient.resolveAlert(alertId)
+      refetch()
+    } catch {
+      // Silently fail - user can retry
+    } finally {
+      setResolvingId(null)
+    }
+  }
+
+  if (loading) return <div className="p-4 text-muted-foreground">Loading alerts...</div>
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center py-8 gap-2">
+          <p className="text-destructive">Failed to load alerts</p>
+          <Button variant="outline" size="sm" onClick={refetch}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Retry
+          </Button>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <Card>
@@ -92,7 +118,7 @@ export function AlertsWidget() {
           {activeAlerts.map((alert) => {
             const Config = severityMap[alert.severity] || severityMap.low
             const Icon = Config.icon
-            
+
             return (
               <div key={alert.id} className="flex items-start gap-4 p-3 rounded-lg border bg-card text-card-foreground shadow-sm">
                 <div className={`p-2 rounded-full bg-opacity-10 ${Config.color.replace('bg-', 'text-')}`}>
@@ -103,15 +129,27 @@ export function AlertsWidget() {
                     <p className="text-sm font-medium leading-none">
                       {alert.type.replace(/_/g, ' ').toUpperCase()}
                     </p>
-                    <Badge variant={alert.severity === 'critical' ? 'destructive' : 'secondary'} className="text-xs">
-                        {alert.severity}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={alert.severity === 'critical' ? 'destructive' : 'secondary'} className="text-xs">
+                          {alert.severity}
+                      </Badge>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 px-2 text-xs"
+                        disabled={resolvingId === alert.id}
+                        onClick={() => handleResolve(alert.id)}
+                      >
+                        <Check className="h-3 w-3 mr-1" />
+                        {resolvingId === alert.id ? 'Resolving...' : 'Resolve'}
+                      </Button>
+                    </div>
                   </div>
                   <p className="text-sm text-muted-foreground">
                     {alert.message}
                   </p>
                   <p className="text-xs text-muted-foreground pt-1">
-                    Customer ID: {alert.customerId} • {new Date(alert.createdAt).toLocaleDateString()}
+                    Customer ID: {alert.customerId} &bull; {new Date(alert.createdAt).toLocaleDateString()}
                   </p>
                 </div>
               </div>

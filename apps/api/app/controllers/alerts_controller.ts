@@ -2,6 +2,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 import Alert from '#models/alert'
 import type { Alert as AlertResponse } from '@repo/shared-types'
 import { createAlertValidator, updateAlertValidator } from '#validators/alert_validator'
+import { DateTime } from 'luxon'
 
 export default class AlertsController {
   async index({}: HttpContext): Promise<AlertResponse[]> {
@@ -42,6 +43,16 @@ export default class AlertsController {
     const response: AlertResponse = alert.serialize() as AlertResponse
 
     return response
+  }
+
+  async resolve({ params }: HttpContext): Promise<AlertResponse> {
+    const alert = await Alert.findOrFail(params.id)
+
+    alert.resolved = true
+    alert.resolvedAt = DateTime.now()
+    await alert.save()
+
+    return alert.serialize() as AlertResponse
   }
 
   async destroy({ params }: HttpContext): Promise<void> {
